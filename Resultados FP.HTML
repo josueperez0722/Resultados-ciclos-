@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Mejora · Región Caribe + Barranquilla</title>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Chart.js 4 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+        body {
+            background: #f5f8fc;
+            padding: 24px 20px;
+        }
+        .dashboard {
+            max-width: 1440px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 20px 40px -12px rgba(0,20,50,0.15);
+            padding: 28px 24px 36px;
+            transition: all 0.2s;
+        }
+        .header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            border-bottom: 2px solid #e9eff5;
+            padding-bottom: 18px;
+        }
+        .header h1 {
+            font-weight: 600;
+            font-size: 1.9rem;
+            color: #0b2b4f;
+            letter-spacing: -0.3px;
+        }
+        .header h1 i {
+            color: #1a5a8a;
+            margin-right: 12px;
+        }
+        .header-badge {
+            background: #e2edf9;
+            padding: 10px 20px;
+            border-radius: 60px;
+            color: #0b2b4f;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+        .header-badge i {
+            margin-right: 8px;
+            color: #1f6390;
+        }
+
+        /* LAYOUT PRINCIPAL: botones laterales + contenido */
+        .main-layout {
+            display: flex;
+            gap: 24px;
+            margin-top: 8px;
+        }
+        .sidebar-cycles {
+            flex: 0 0 110px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-top: 6px;
+        }
+        .sidebar-cycles .cycle-btn {
+            background: white;
+            border: 1px solid #c7d9e9;
+            padding: 10px 6px;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: #1f4a6e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: 0.15s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+            width: 100%;
+            text-align: center;
+            flex-wrap: wrap;
+        }
+        .sidebar-cycles .cycle-btn i {
+            color: #1f6390;
+            font-size: 0.8rem;
+        }
+        .sidebar-cycles .cycle-btn.active {
+            background: #0b2b4f;
+            border-color: #0b2b4f;
+            color: white;
+            box-shadow: 0 6px 12px rgba(10,50,90,0.12);
+        }
+        .sidebar-cycles .cycle-btn.active i {
+            color: #aac8e6;
+        }
+        .sidebar-cycles .cycle-btn:hover:not(.active) {
+            background: #e7f0f9;
+            border-color: #9bb7d4;
+        }
+        .content-area {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .grid-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 28px;
+            margin-top: 4px;
+        }
+        @media (max-width: 900px) {
+            .main-layout { flex-direction: column; }
+            .sidebar-cycles { flex: 1; flex-direction: row; flex-wrap: wrap; gap: 6px; }
+            .sidebar-cycles .cycle-btn { flex: 1 0 auto; width: auto; padding: 8px 14px; }
+            .grid-2col { grid-template-columns: 1fr; gap: 32px; }
+        }
+        .card {
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 6px 18px rgba(0, 32, 64, 0.04), 0 2px 6px rgba(0, 20, 40, 0.02);
+            padding: 18px 18px 22px;
+            border: 1px solid #eaf1f9;
+            transition: box-shadow 0.15s;
+        }
+        .card:hover {
+            box-shadow: 0 12px 28px -6px rgba(10, 50, 90, 0.08);
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+            border-bottom: 1px solid #eef4fa;
+            padding-bottom: 12px;
+        }
+        .card-header i {
+            font-size: 1.6rem;
+            color: #1a5a8a;
+            width: 36px;
+            text-align: center;
+        }
+        .card-header h3 {
+            font-weight: 600;
+            font-size: 1.25rem;
+            color: #12324f;
+            letter-spacing: -0.2px;
+        }
+        .card-header .sub {
+            margin-left: auto;
+            color: #3a6b8f;
+            background: #e3edf6;
+            padding: 2px 14px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .table-wrap {
+            overflow-x: auto;
+            margin-top: 4px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        th {
+            text-align: left;
+            padding: 10px 6px 6px 0;
+            color: #1f4a6e;
+            font-weight: 600;
+            border-bottom: 1px solid #dde6f0;
+        }
+        td {
+            padding: 8px 6px 8px 0;
+            border-bottom: 1px solid #edf3f9;
+            color: #1c3b57;
+        }
+        .tot-row {
+            background: #f2f8ff;
+            font-weight: 600;
+            border-top: 1px solid #bed3e8;
+        }
+        .tot-row td {
+            padding: 10px 6px;
+        }
+        .mini-chart-container {
+            height: 70px;
+            margin: 12px 0 4px;
+        }
+        .flex-icon-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px 20px;
+            align-items: center;
+            margin: 12px 0 4px;
+            color: #1f4f77;
+        }
+        .icon-chip {
+            background: #ecf3fa;
+            padding: 4px 16px 4px 12px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .icon-chip i {
+            color: #1a5a8a;
+            font-size: 0.9rem;
+        }
+        .callout {
+            background: #e5eff8;
+            border-radius: 20px;
+            padding: 14px 20px;
+            margin-top: 28px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            border-left: 6px solid #1a5a8a;
+            color: #0b2b4f;
+        }
+        .callout i {
+            font-size: 1.8rem;
+            color: #1a5a8a;
+            margin-right: 12px;
+        }
+        .callout-text {
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .callout strong {
+            font-weight: 700;
+            color: #003a70;
+        }
+        .btn-cta {
+            background: #0b2b4f;
+            border: none;
+            color: white;
+            padding: 8px 28px;
+            border-radius: 60px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: 0.15s;
+            cursor: default;
+            box-shadow: 0 4px 8px rgba(0,40,80,0.1);
+        }
+        .btn-cta i {
+            color: #9ac2e0;
+            font-size: 1rem;
+        }
+        .size-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px 20px;
+            margin: 6px 0 2px;
+        }
+        .size-item {
+            background: #f2f8ff;
+            padding: 6px 18px 6px 14px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            border: 1px solid #d2e2f0;
+        }
+        .size-item i {
+            margin-right: 6px;
+            color: #1f6390;
+        }
+        .footer-note {
+            margin-top: 24px;
+            font-size: 0.8rem;
+            color: #3b6a8f;
+            text-align: right;
+            border-top: 1px solid #dce8f2;
+            padding-top: 14px;
+        }
+        .badge-cycle {
+            background: #d2e2f2;
+            padding: 2px 14px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #12406b;
+        }
+        .inline-flex {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .interv-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px 24px;
+            padding: 6px 0;
+        }
+        .interv-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.9rem;
+            padding: 4px 0;
+        }
+        .interv-item i {
+            width: 20px;
+            color: #1f6390;
+        }
+        .interv-item strong {
+            font-weight: 600;
+            color: #0b2b4f;
+        }
+        @media (max-width: 600px) {
+            .interv-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="dashboard">
+
+    <div class="header">
+        <h1><i class="fas fa-chart-line"></i> Mejora Caribe · Ciclos 1–6</h1>
+        <div class="header-badge"><i class="fas fa-building"></i> 966 intervenciones · 520 empresas</div>
+    </div>
+
+    <!-- LAYOUT: sidebar (botones) + contenido -->
+    <div class="main-layout">
+        <!-- Sidebar con botones de ciclo -->
+        <div class="sidebar-cycles" id="cycleSidebar">
+            <button class="cycle-btn active" data-cycle="1"><i class="fas fa-circle"></i> C1</button>
+            <button class="cycle-btn" data-cycle="2"><i class="fas fa-circle"></i> C2</button>
+            <button class="cycle-btn" data-cycle="3"><i class="fas fa-circle"></i> C3</button>
+            <button class="cycle-btn" data-cycle="4"><i class="fas fa-circle"></i> C4</button>
+            <button class="cycle-btn" data-cycle="5"><i class="fas fa-circle"></i> C5</button>
+            <button class="cycle-btn" data-cycle="6"><i class="fas fa-circle"></i> C6</button>
+            <button class="cycle-btn" data-cycle="all" style="background:#e2edf9; border-color:#9bb7d4; margin-top:4px;"><i class="fas fa-layer-group"></i> 1–6</button>
+        </div>
+
+        <!-- Contenido principal -->
+        <div class="content-area">
+
+            <!-- FILA 1: dos columnas con tablas y charts -->
+            <div class="grid-2col" id="mainGrid">
+                <!-- Columna izquierda: Región Caribe -->
+                <div class="card" id="cardCaribe">
+                    <div class="card-header">
+                        <i class="fas fa-water"></i>
+                        <h3>Región Caribe</h3>
+                        <span class="sub" id="caribeCycleLabel"><i class="far fa-calendar-alt"></i> Ciclo 1</span>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>Línea de servicio</th><th style="text-align:right;">Promedio</th></tr></thead>
+                            <tbody id="tabla-caribe"></tbody>
+                        </table>
+                    </div>
+                    <div class="mini-chart-container">
+                        <canvas id="chartCaribe" width="300" height="60" style="max-height:60px; width:100%;"></canvas>
+                    </div>
+                    <div class="flex-icon-row">
+                        <span class="icon-chip" id="caribeTop"><i class="fas fa-arrow-up"></i> Top: Gestión Calidad</span>
+                        <span class="icon-chip"><i class="fas fa-arrow-right"></i> <span id="caribeCycleDisplay">Ciclo 1</span></span>
+                        <span class="icon-chip" id="caribeTotalDisplay"><i class="fas fa-tag"></i> Total 0.322</span>
+                    </div>
+                </div>
+
+                <!-- Columna derecha: Barranquilla -->
+                <div class="card" id="cardBarranquilla">
+                    <div class="card-header">
+                        <i class="fas fa-city"></i>
+                        <h3>Barranquilla</h3>
+                        <span class="sub" id="barranquillaCycleLabel"><i class="far fa-calendar-alt"></i> Ciclo 1</span>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>Línea de servicio</th><th style="text-align:right;">Promedio</th></tr></thead>
+                            <tbody id="tabla-barranquilla"></tbody>
+                        </table>
+                    </div>
+                    <div class="mini-chart-container">
+                        <canvas id="chartBarranquilla" width="300" height="60" style="max-height:60px; width:100%;"></canvas>
+                    </div>
+                    <div class="flex-icon-row">
+                        <span class="icon-chip" id="barranquillaTop"><i class="fas fa-arrow-up"></i> Top: Gestión Calidad</span>
+                        <span class="icon-chip"><i class="fas fa-arrow-right"></i> <span id="barranquillaCycleDisplay">Ciclo 1</span></span>
+                        <span class="icon-chip" id="barranquillaTotalDisplay"><i class="fas fa-tag"></i> Total 0.337</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FILA 2: empresas por tamaño y líneas de intervención (con datos completos) -->
+            <div class="grid-2col" style="margin-top: 12px;">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-vector-square"></i>
+                        <h3>Tamaño empresas</h3>
+                        <span class="sub"><i class="fas fa-users"></i> Total 966</span>
+                    </div>
+                    <div style="display:flex; flex-wrap:wrap; gap: 12px 30px; padding: 6px 0 8px;">
+                        <div><i class="fas fa-building" style="color:#1f6390;"></i> <strong>Grande</strong> 51</div>
+                        <div><i class="fas fa-building" style="color:#1f6390;"></i> <strong>Mediana</strong> 245</div>
+                        <div><i class="fas fa-building" style="color:#1f6390;"></i> <strong>Micro</strong> 151</div>
+                        <div><i class="fas fa-building" style="color:#1f6390;"></i> <strong>Pequeña</strong> 478</div>
+                    </div>
+                    <div style="border-top:1px solid #e2ecf5; margin: 6px 0 8px;"></div>
+                    <div class="size-grid">
+                        <span class="size-item"><i class="fas fa-chart-pie"></i> Grande 5%</span>
+                        <span class="size-item"><i class="fas fa-chart-pie"></i> Mediana 25%</span>
+                        <span class="size-item"><i class="fas fa-chart-pie"></i> Micro 16%</span>
+                        <span class="size-item"><i class="fas fa-chart-pie"></i> Pequeña 49%</span>
+                    </div>
+                </div>
+
+                <!-- Líneas de intervención COMPLETAS (todas las líneas) -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-bullseye"></i>
+                        <h3>Líneas de intervención</h3>
+                        <span class="sub"><i class="fas fa-list"></i> Total 966</span>
+                    </div>
+                    <div class="interv-grid">
+                        <div class="interv-item"><i class="fas fa-chart-simple"></i> <strong>Gestión Comercial</strong> 270</div>
+                        <div class="interv-item"><i class="fas fa-check-circle"></i> <strong>Gestión de la Calidad</strong> 221</div>
+                        <div class="interv-item"><i class="fas fa-gear"></i> <strong>Productividad Operacional</strong> 150</div>
+                        <div class="interv-item"><i class="fas fa-laptop"></i> <strong>Transformación Digital</strong> 120</div>
+                        <div class="interv-item"><i class="fas fa-user"></i> <strong>Productividad Laboral</strong> 72</div>
+                        <div class="interv-item"><i class="fas fa-leaf"></i> <strong>Sostenibilidad Ambiental</strong> 49</div>
+                        <div class="interv-item"><i class="fas fa-flask"></i> <strong>Sofisticación</strong> 32</div>
+                        <div class="interv-item"><i class="fas fa-truck"></i> <strong>Logística</strong> 28</div>
+                        <div class="interv-item"><i class="fas fa-bolt"></i> <strong>Eficiencia Energética</strong> 24</div>
+                    </div>
+                    <div style="margin-top: 8px; border-top: 1px solid #e2ecf5; padding-top: 8px; font-size:0.8rem; color:#1f4a6e;">
+                        <i class="fas fa-info-circle"></i> Datos agregados Ciclo 1 al 6
+                    </div>
+                </div>
+            </div>
+
+            <!-- CALLOUT / CALL TO ACTION -->
+            <div class="callout">
+                <div class="callout-text">
+                    <i class="fas fa-bullhorn"></i>
+                    <span><strong>¡Atención!</strong> <span id="calloutLine">Gestión de la Calidad</span> lidera el promedio en ambos territorios. <span style="background:#d4e3f2; padding:2px 14px; border-radius:40px; margin-left:10px;" id="calloutCycle">Ciclo 1</span></span>
+                </div>
+                <div class="btn-cta">
+                    <i class="fas fa-arrow-right"></i> Ver detalles
+                </div>
+            </div>
+
+            <div class="footer-note">
+                <i class="fas fa-database"></i> Datos basados en el archivo Resultados borrador.xlsx · Región Caribe & Barranquilla
+            </div>
+        </div> <!-- fin content-area -->
+    </div> <!-- fin main-layout -->
+</div>
+
+<script>
+    (function() {
+        // -------------------------------------------------------------
+        // DATOS COMPLETOS POR CICLO (extraídos del excel)
+        // -------------------------------------------------------------
+        const cycleData = {
+            1: {
+                caribe: [
+                    { label: "Transformación Digital", value: 0.6395933014354067 },
+                    { label: "Productividad Operacional", value: 0.35554501914438597 },
+                    { label: "Eficiencia energética", value: 0.34127802011355446 },
+                    { label: "Gestión de la Calidad", value: 0.2920364630034627 },
+                    { label: "Gestión Comercial", value: 0.27134269787970455 },
+                    { label: "Sostenibilidad Ambiental", value: 0.1920564342341686 },
+                    { label: "Desarrollo y sofisticación de producto", value: 0.15993979933110372 },
+                    { label: "Logística", value: 0.15922855433315097 },
+                    { label: "Productividad Laboral", value: 0.1465044524837231 }
+                ],
+                barranquilla: [
+                    { label: "Transformación Digital", value: 0.6314568764568764 },
+                    { label: "Eficiencia energética", value: 0.46796671548122193 },
+                    { label: "Productividad Operacional", value: 0.38264722690305514 },
+                    { label: "Gestión Comercial", value: 0.26373391298622123 },
+                    { label: "Gestión de la Calidad", value: 0.2297791742210792 },
+                    { label: "Productividad Laboral", value: 0.1660821918079285 },
+                    { label: "Logística", value: 0.15894736842105267 },
+                    { label: "Desarrollo y sofisticación de producto", value: 0.05230769230769239 }
+                ],
+                totalCaribe: 0.3215902969654315,
+                totalBarranquilla: 0.3372656534471109
+            },
+            2: {
+                caribe: [
+                    { label: "Gestión de la Calidad", value: 0.5593187760225345 },
+                    { label: "Desarrollo y sofisticación de producto", value: 0.4095225017003199 },
+                    { label: "Productividad Operacional", value: 0.3488430494191179 },
+                    { label: "Transformación Digital", value: 0.30221005652027594 },
+                    { label: "Sostenibilidad Ambiental", value: 0.20955619953242588 },
+                    { label: "Gestión Comercial", value: 0.1928528804071396 },
+                    { label: "Productividad Laboral", value: 0.16269225379260294 },
+                    { label: "Logística", value: 0.13974563431789153 },
+                    { label: "Eficiencia energética", value: 0.09958724225650627 }
+                ],
+                barranquilla: [
+                    { label: "Gestión de la Calidad", value: 0.5969140280575633 },
+                    { label: "Productividad Operacional", value: 0.3232879034461567 },
+                    { label: "Productividad Laboral", value: 0.29484223338458265 },
+                    { label: "Gestión Comercial", value: 0.26827971087512537 },
+                    { label: "Sostenibilidad Ambiental", value: 0.2393918699277052 },
+                    { label: "Transformación Digital", value: 0.23690411586946244 },
+                    { label: "Eficiencia energética", value: 0.15706096825932692 },
+                    { label: "Logística", value: 0.13535270786849202 }
+                ],
+                totalCaribe: 0.33733213841591125,
+                totalBarranquilla: 0.3671288761631789
+            },
+            3: {
+                caribe: [
+                    { label: "Gestión de la Calidad", value: 0.6236429731289743 },
+                    { label: "Transformación Digital", value: 0.5033277539791686 },
+                    { label: "Eficiencia energética", value: 0.3693133891524498 },
+                    { label: "Desarrollo y sofisticación de producto", value: 0.34440345368916797 },
+                    { label: "Productividad Operacional", value: 0.2947542134742889 },
+                    { label: "Gestión Comercial", value: 0.27906075559586185 },
+                    { label: "Sostenibilidad Ambiental", value: 0.24351530885987369 },
+                    { label: "Productividad Laboral", value: 0.1692662758406911 },
+                    { label: "Logística", value: 0.16914166188688626 }
+                ],
+                barranquilla: [
+                    { label: "Gestión de la Calidad", value: 0.5875456882685113 },
+                    { label: "Transformación Digital", value: 0.48617995779879475 },
+                    { label: "Desarrollo y sofisticación de producto", value: 0.34440345368916797 },
+                    { label: "Eficiencia energética", value: 0.34346090395578 },
+                    { label: "Productividad Operacional", value: 0.3206905033463694 },
+                    { label: "Gestión Comercial", value: 0.24481567690650505 },
+                    { label: "Sostenibilidad Ambiental", value: 0.2267629277506096 },
+                    { label: "Logística", value: 0.215302582627648 },
+                    { label: "Productividad Laboral", value: 0.09615681987130256 }
+                ],
+                totalCaribe: 0.37430909781263677,
+                totalBarranquilla: 0.3587382513216013
+            },
+            4: {
+                caribe: [
+                    { label: "Gestión de la Calidad", value: 0.6001464584632791 },
+                    { label: "Transformación Digital", value: 0.3755654567592985 },
+                    { label: "Desarrollo y sofisticación de producto", value: 0.32377350179415904 },
+                    { label: "Gestión Comercial", value: 0.1962977821672378 },
+                    { label: "Productividad Operacional", value: 0.18761781713626643 },
+                    { label: "Eficiencia energética", value: 0.170524004066862 },
+                    { label: "Sostenibilidad Ambiental", value: 0.14494218163350905 },
+                    { label: "Productividad Laboral", value: 0.14318989762245712 },
+                    { label: "Logística", value: 0.07163304788789554 }
+                ],
+                barranquilla: [
+                    { label: "Gestión de la Calidad", value: 0.5685514638768386 },
+                    { label: "Transformación Digital", value: 0.3940826822222719 },
+                    { label: "Gestión Comercial", value: 0.1822999408232002 },
+                    { label: "Productividad Operacional", value: 0.17898121903893371 },
+                    { label: "Desarrollo y sofisticación de producto", value: 0.15240148813653168 },
+                    { label: "Sostenibilidad Ambiental", value: 0.14494218163350905 },
+                    { label: "Productividad Laboral", value: 0.14336621748457526 },
+                    { label: "Eficiencia energética", value: 0.0415547704744576 }
+                ],
+                totalCaribe: 0.3248447479473445,
+                totalBarranquilla: 0.3085981904367114
+            },
+            5: {
+                caribe: [
+                    { label: "Gestión de la Calidad", value: 0.5590993754312373 },
+                    { label: "Transformación Digital", value: 0.40551744769184284 },
+                    { label: "Productividad Laboral", value: 0.3908128900701136 },
+                    { label: "Desarrollo y sofisticación de producto", value: 0.3662231737990409 },
+                    { label: "Sostenibilidad Ambiental", value: 0.3337183406598403 },
+                    { label: "Productividad Operacional", value: 0.31027127843625596 },
+                    { label: "Logística", value: 0.25813378213878824 },
+                    { label: "Eficiencia energética", value: 0.25068497715372073 },
+                    { label: "Gestión Comercial", value: 0.23570577817181235 }
+                ],
+                barranquilla: [
+                    { label: "Gestión de la Calidad", value: 0.516703838257892 },
+                    { label: "Logística", value: 0.4801515205449667 },
+                    { label: "Desarrollo y sofisticación de producto", value: 0.4597574955871705 },
+                    { label: "Productividad Laboral", value: 0.4321100552516079 },
+                    { label: "Sostenibilidad Ambiental", value: 0.3588298435229368 },
+                    { label: "Transformación Digital", value: 0.2952083667733173 },
+                    { label: "Eficiencia energética", value: 0.2822243623481626 },
+                    { label: "Productividad Operacional", value: 0.27594443549816794 },
+                    { label: "Gestión Comercial", value: 0.22004827425253595 }
+                ],
+                totalCaribe: 0.33230182311949646,
+                totalBarranquilla: 0.31848426054908885
+            },
+            6: {
+                caribe: [
+                    { label: "Gestión de la Calidad", value: 0.5478991644369147 },
+                    { label: "Desarrollo y sofisticación de producto", value: 0.4145850076086625 },
+                    { label: "Transformación Digital", value: 0.4124692310392589 },
+                    { label: "Productividad Operacional", value: 0.3700996271362778 },
+                    { label: "Sostenibilidad Ambiental", value: 0.26683185272874393 },
+                    { label: "Productividad Laboral", value: 0.2621894751186388 },
+                    { label: "Gestión Comercial", value: 0.2494000562074545 },
+                    { label: "Gestión Logística", value: 0.21293850147026044 },
+                    { label: "Logística", value: 0.17560548869251344 }
+                ],
+                barranquilla: [
+                    { label: "Gestión de la Calidad", value: 0.5389318992791228 },
+                    { label: "Desarrollo y sofisticación de producto", value: 0.393531740280059 },
+                    { label: "Transformación Digital", value: 0.36121338292102406 },
+                    { label: "Productividad Operacional", value: 0.3299367318462125 },
+                    { label: "Gestión Comercial", value: 0.2380676455613251 },
+                    { label: "Productividad Laboral", value: 0.19482102047792269 },
+                    { label: "Sostenibilidad Ambiental", value: 0.17420186194585097 },
+                    { label: "Logística", value: 0.1300563113114444 }
+                ],
+                totalCaribe: 0.34562880916594463,
+                totalBarranquilla: 0.3112696899395025
+            }
+        };
+
+        // Agregado (ciclo 1 al 6)
+        const aggregated = {
+            caribe: [
+                { label: "Gestión de la Calidad", value: 0.5477938544657222 },
+                { label: "Transformación Digital", value: 0.419729113790748 },
+                { label: "Desarrollo y sofisticación de producto", value: 0.3526120769169775 },
+                { label: "Productividad Operacional", value: 0.3160046305100196 },
+                { label: "Eficiencia energética", value: 0.27174672164211094 },
+                { label: "Gestión Comercial", value: 0.23679747895309464 },
+                { label: "Sostenibilidad Ambiental", value: 0.2188033265441942 },
+                { label: "Gestión Logística", value: 0.21293850147026044 },
+                { label: "Productividad Laboral", value: 0.20994449290992354 },
+                { label: "Logística", value: 0.16205779206680393 }
+            ],
+            barranquilla: [
+                { label: "Gestión de la Calidad", value: 0.5224326561057272 },
+                { label: "Transformación Digital", value: 0.4013109241124543 },
+                { label: "Desarrollo y sofisticación de producto", value: 0.36177713540756556 },
+                { label: "Productividad Operacional", value: 0.3212961088415786 },
+                { label: "Eficiencia energética", value: 0.29823996278801423 },
+                { label: "Gestión Comercial", value: 0.2242488672095831 },
+                { label: "Sostenibilidad Ambiental", value: 0.21390705909382066 },
+                { label: "Productividad Laboral", value: 0.20412370879376743 },
+                { label: "Logística", value: 0.18928955957251975 }
+            ],
+            totalCaribe: 0.3382443118289503,
+            totalBarranquilla: 0.3299461077307765
+        };
+
+        // referencias DOM
+        const tablaCaribe = document.getElementById('tabla-caribe');
+        const tablaBarranquilla = document.getElementById('tabla-barranquilla');
+        const chartCaribe = document.getElementById('chartCaribe');
+        const chartBarranquilla = document.getElementById('chartBarranquilla');
+        const caribeCycleLabel = document.getElementById('caribeCycleLabel');
+        const barranquillaCycleLabel = document.getElementById('barranquillaCycleLabel');
+        const caribeCycleDisplay = document.getElementById('caribeCycleDisplay');
+        const barranquillaCycleDisplay = document.getElementById('barranquillaCycleDisplay');
+        const caribeTotalDisplay = document.getElementById('caribeTotalDisplay');
+        const barranquillaTotalDisplay = document.getElementById('barranquillaTotalDisplay');
+        const caribeTop = document.getElementById('caribeTop');
+        const barranquillaTop = document.getElementById('barranquillaTop');
+        const calloutLine = document.getElementById('calloutLine');
+        const calloutCycle = document.getElementById('calloutCycle');
+
+        let currentChartCaribe = null;
+        let currentChartBarranquilla = null;
+
+        function renderTable(data, tbody, total) {
+            let html = '';
+            data.forEach(item => {
+                const pct = (item.value * 100).toFixed(1);
+                html += `<tr><td><i class="fas fa-circle" style="color:#1f6390; font-size:0.5rem; margin-right:6px;"></i> ${item.label}</td>
+                         <td style="text-align:right; font-weight:500;">${pct}%</td></tr>`;
+            });
+            const totalPct = (total * 100).toFixed(1);
+            html += `<tr class="tot-row"><td>Total general</td><td style="text-align:right;">${totalPct}%</td></tr>`;
+            tbody.innerHTML = html;
+        }
+
+        function buildChart(canvasId, data, color) {
+            const ctx = document.getElementById(canvasId);
+            if (!ctx) return;
+            if (canvasId === 'chartCaribe' && currentChartCaribe) {
+                currentChartCaribe.destroy();
+            } else if (canvasId === 'chartBarranquilla' && currentChartBarranquilla) {
+                currentChartBarranquilla.destroy();
+            }
+            const labels = data.map(d => d.label.length > 18 ? d.label.slice(0,14)+'…' : d.label);
+            const values = data.map(d => d.value);
+            const shortLabels = labels.slice(0,8);
+            const shortValues = values.slice(0,8);
+            const newChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: shortLabels,
+                    datasets: [{
+                        label: 'Promedio mejora',
+                        data: shortValues,
+                        backgroundColor: color || '#1a5a8a',
+                        borderRadius: 4,
+                        barPercentage: 0.6,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => `${(ctx.raw * 100).toFixed(1)}%`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { display: false, beginAtZero: true },
+                        x: { display: false }
+                    },
+                    animation: { duration: 300 }
+                }
+            });
+            if (canvasId === 'chartCaribe') currentChartCaribe = newChart;
+            else if (canvasId === 'chartBarranquilla') currentChartBarranquilla = newChart;
+            return newChart;
+        }
+
+        function updateDashboard(cycleKey) {
+            let data;
+            let cycleLabel;
+            if (cycleKey === 'all') {
+                data = aggregated;
+                cycleLabel = '1–6';
+            } else {
+                data = cycleData[cycleKey];
+                if (!data) return;
+                cycleLabel = `Ciclo ${cycleKey}`;
+            }
+
+            renderTable(data.caribe, tablaCaribe, data.totalCaribe);
+            renderTable(data.barranquilla, tablaBarranquilla, data.totalBarranquilla);
+
+            caribeCycleLabel.innerHTML = `<i class="far fa-calendar-alt"></i> ${cycleLabel}`;
+            barranquillaCycleLabel.innerHTML = `<i class="far fa-calendar-alt"></i> ${cycleLabel}`;
+            caribeCycleDisplay.textContent = cycleLabel;
+            barranquillaCycleDisplay.textContent = cycleLabel;
+            caribeTotalDisplay.innerHTML = `<i class="fas fa-tag"></i> Total ${(data.totalCaribe * 100).toFixed(1)}%`;
+            barranquillaTotalDisplay.innerHTML = `<i class="fas fa-tag"></i> Total ${(data.totalBarranquilla * 100).toFixed(1)}%`;
+
+            if (data.caribe.length > 0) {
+                const topCaribe = data.caribe[0].label;
+                caribeTop.innerHTML = `<i class="fas fa-arrow-up"></i> Top: ${topCaribe}`;
+            }
+            if (data.barranquilla.length > 0) {
+                const topBarranquilla = data.barranquilla[0].label;
+                barranquillaTop.innerHTML = `<i class="fas fa-arrow-up"></i> Top: ${topBarranquilla}`;
+            }
+            if (data.caribe.length > 0) {
+                calloutLine.textContent = data.caribe[0].label;
+            }
+            calloutCycle.textContent = cycleLabel;
+
+            buildChart('chartCaribe', data.caribe, '#1a5a8a');
+            buildChart('chartBarranquilla', data.barranquilla, '#2a6b9c');
+        }
+
+        // eventos sidebar
+        const buttons = document.querySelectorAll('.sidebar-cycles .cycle-btn');
+        buttons.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                buttons.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const cycle = this.dataset.cycle;
+                updateDashboard(cycle);
+            });
+        });
+
+        // inicializar con ciclo 1
+        updateDashboard('1');
+    })();
+</script>
+
+</body>
+</html>
