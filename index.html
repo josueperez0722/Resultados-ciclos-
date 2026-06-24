@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Mejora · Región Caribe + Barranquilla</title>
+    <title>Histórico Fábricas de Productividad y Sostenibilidad</title>
     <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- Chart.js 4 -->
@@ -38,26 +38,19 @@
             padding-bottom: 18px;
         }
         .header h1 {
-            font-weight: 600;
-            font-size: 1.9rem;
+            font-weight: 700;
+            font-size: 1.7rem;
             color: #0b2b4f;
-            letter-spacing: -0.3px;
+            letter-spacing: -0.5px;
         }
         .header h1 i {
             color: #1a5a8a;
-            margin-right: 12px;
+            margin-right: 14px;
         }
-        .header-badge {
-            background: #e2edf9;
-            padding: 10px 20px;
-            border-radius: 60px;
-            color: #0b2b4f;
-            font-weight: 500;
-            font-size: 0.95rem;
-        }
-        .header-badge i {
-            margin-right: 8px;
-            color: #1f6390;
+        .header h1 span {
+            font-weight: 300;
+            color: #3a6b8f;
+            font-size: 1.2rem;
         }
 
         /* LAYOUT PRINCIPAL: botones laterales + contenido */
@@ -67,7 +60,7 @@
             margin-top: 8px;
         }
         .sidebar-cycles {
-            flex: 0 0 110px;
+            flex: 0 0 120px;
             display: flex;
             flex-direction: column;
             gap: 8px;
@@ -108,6 +101,14 @@
         .sidebar-cycles .cycle-btn:hover:not(.active) {
             background: #e7f0f9;
             border-color: #9bb7d4;
+        }
+        .sidebar-cycles .cycle-btn.multi-selected {
+            background: #2a6b9c;
+            border-color: #1a5a8a;
+            color: white;
+        }
+        .sidebar-cycles .cycle-btn.multi-selected i {
+            color: #d4e8ff;
         }
         .content-area {
             flex: 1;
@@ -284,27 +285,6 @@
             margin-right: 6px;
             color: #1f6390;
         }
-        .footer-note {
-            margin-top: 24px;
-            font-size: 0.8rem;
-            color: #3b6a8f;
-            text-align: right;
-            border-top: 1px solid #dce8f2;
-            padding-top: 14px;
-        }
-        .badge-cycle {
-            background: #d2e2f2;
-            padding: 2px 14px;
-            border-radius: 40px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: #12406b;
-        }
-        .inline-flex {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
         .interv-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -329,19 +309,40 @@
         @media (max-width: 600px) {
             .interv-grid { grid-template-columns: 1fr; }
         }
+        .clear-btn {
+            background: #e8f0f8;
+            border: 1px solid #b8cfe0;
+            border-radius: 60px;
+            padding: 6px 12px;
+            font-size: 0.7rem;
+            color: #1f4a6e;
+            cursor: pointer;
+            transition: 0.15s;
+            margin-top: 4px;
+            text-align: center;
+            font-weight: 500;
+        }
+        .clear-btn:hover {
+            background: #d4e2f0;
+        }
+        .selection-info {
+            font-size: 0.7rem;
+            color: #3a6b8f;
+            text-align: center;
+            margin-top: 2px;
+        }
     </style>
 </head>
 <body>
 <div class="dashboard">
 
     <div class="header">
-        <h1><i class="fas fa-chart-line"></i> Mejora Caribe · Ciclos 1–6</h1>
-        <div class="header-badge"><i class="fas fa-building"></i> 966 intervenciones · 520 empresas</div>
+        <h1><i class="fas fa-chart-line"></i> Histórico <span>Fábricas de Productividad y Sostenibilidad</span></h1>
     </div>
 
     <!-- LAYOUT: sidebar (botones) + contenido -->
     <div class="main-layout">
-        <!-- Sidebar con botones de ciclo -->
+        <!-- Sidebar con botones de ciclo (multiselección) -->
         <div class="sidebar-cycles" id="cycleSidebar">
             <button class="cycle-btn active" data-cycle="1"><i class="fas fa-circle"></i> C1</button>
             <button class="cycle-btn" data-cycle="2"><i class="fas fa-circle"></i> C2</button>
@@ -350,6 +351,8 @@
             <button class="cycle-btn" data-cycle="5"><i class="fas fa-circle"></i> C5</button>
             <button class="cycle-btn" data-cycle="6"><i class="fas fa-circle"></i> C6</button>
             <button class="cycle-btn" data-cycle="all" style="background:#e2edf9; border-color:#9bb7d4; margin-top:4px;"><i class="fas fa-layer-group"></i> 1–6</button>
+            <div class="clear-btn" id="clearSelection"><i class="fas fa-times-circle"></i> Limpiar</div>
+            <div class="selection-info" id="selectionInfo">Seleccionados: C1</div>
         </div>
 
         <!-- Contenido principal -->
@@ -404,7 +407,7 @@
                 </div>
             </div>
 
-            <!-- FILA 2: empresas por tamaño y líneas de intervención (con datos completos) -->
+            <!-- FILA 2: empresas por tamaño y líneas de intervención (datos completos en números) -->
             <div class="grid-2col" style="margin-top: 12px;">
                 <div class="card">
                     <div class="card-header">
@@ -427,7 +430,7 @@
                     </div>
                 </div>
 
-                <!-- Líneas de intervención COMPLETAS (todas las líneas) -->
+                <!-- Líneas de intervención COMPLETAS (en números) -->
                 <div class="card">
                     <div class="card-header">
                         <i class="fas fa-bullseye"></i>
@@ -446,7 +449,7 @@
                         <div class="interv-item"><i class="fas fa-bolt"></i> <strong>Eficiencia Energética</strong> 24</div>
                     </div>
                     <div style="margin-top: 8px; border-top: 1px solid #e2ecf5; padding-top: 8px; font-size:0.8rem; color:#1f4a6e;">
-                        <i class="fas fa-info-circle"></i> Datos agregados Ciclo 1 al 6
+                        <i class="fas fa-info-circle"></i> Datos agregados Ciclo 1 al 6 (número de empresas)
                     </div>
                 </div>
             </div>
@@ -462,9 +465,6 @@
                 </div>
             </div>
 
-            <div class="footer-note">
-                <i class="fas fa-database"></i> Datos basados en el archivo Resultados borrador.xlsx · Región Caribe & Barranquilla
-            </div>
         </div> <!-- fin content-area -->
     </div> <!-- fin main-layout -->
 </div>
@@ -472,7 +472,7 @@
 <script>
     (function() {
         // -------------------------------------------------------------
-        // DATOS COMPLETOS POR CICLO (extraídos del excel)
+        // DATOS COMPLETOS POR CICLO
         // -------------------------------------------------------------
         const cycleData = {
             1: {
@@ -673,9 +673,11 @@
         const barranquillaTop = document.getElementById('barranquillaTop');
         const calloutLine = document.getElementById('calloutLine');
         const calloutCycle = document.getElementById('calloutCycle');
+        const selectionInfo = document.getElementById('selectionInfo');
 
         let currentChartCaribe = null;
         let currentChartBarranquilla = null;
+        let selectedCycles = new Set(['1']);
 
         function renderTable(data, tbody, total) {
             let html = '';
@@ -736,58 +738,169 @@
             return newChart;
         }
 
-        function updateDashboard(cycleKey) {
+        function getAggregatedData(cycles) {
+            if (cycles.has('all')) {
+                return aggregated;
+            }
+            if (cycles.size === 0) {
+                return {
+                    caribe: [],
+                    barranquilla: [],
+                    totalCaribe: 0,
+                    totalBarranquilla: 0
+                };
+            }
+            const caribeMap = new Map();
+            const barranquillaMap = new Map();
+            let count = 0;
+            for (const c of cycles) {
+                const data = cycleData[c];
+                if (!data) continue;
+                count++;
+                data.caribe.forEach(item => {
+                    if (!caribeMap.has(item.label)) {
+                        caribeMap.set(item.label, { sum: 0, count: 0 });
+                    }
+                    const entry = caribeMap.get(item.label);
+                    entry.sum += item.value;
+                    entry.count += 1;
+                });
+                data.barranquilla.forEach(item => {
+                    if (!barranquillaMap.has(item.label)) {
+                        barranquillaMap.set(item.label, { sum: 0, count: 0 });
+                    }
+                    const entry = barranquillaMap.get(item.label);
+                    entry.sum += item.value;
+                    entry.count += 1;
+                });
+            }
+            if (count === 0) {
+                return {
+                    caribe: [],
+                    barranquilla: [],
+                    totalCaribe: 0,
+                    totalBarranquilla: 0
+                };
+            }
+            const caribeAvg = Array.from(caribeMap.entries()).map(([label, data]) => ({
+                label: label,
+                value: data.sum / data.count
+            })).sort((a, b) => b.value - a.value);
+            const barranquillaAvg = Array.from(barranquillaMap.entries()).map(([label, data]) => ({
+                label: label,
+                value: data.sum / data.count
+            })).sort((a, b) => b.value - a.value);
+            let totalCaribe = 0, totalBarranquilla = 0;
+            let totalCountCaribe = 0, totalCountBarranquilla = 0;
+            for (const c of cycles) {
+                const data = cycleData[c];
+                if (data) {
+                    totalCaribe += data.totalCaribe;
+                    totalBarranquilla += data.totalBarranquilla;
+                    totalCountCaribe++;
+                    totalCountBarranquilla++;
+                }
+            }
+            return {
+                caribe: caribeAvg,
+                barranquilla: barranquillaAvg,
+                totalCaribe: totalCountCaribe > 0 ? totalCaribe / totalCountCaribe : 0,
+                totalBarranquilla: totalCountBarranquilla > 0 ? totalBarranquilla / totalCountBarranquilla : 0
+            };
+        }
+
+        function updateDashboard() {
             let data;
             let cycleLabel;
-            if (cycleKey === 'all') {
+            const hasAll = selectedCycles.has('all');
+            if (hasAll) {
                 data = aggregated;
                 cycleLabel = '1–6';
+            } else if (selectedCycles.size === 0) {
+                data = { caribe: [], barranquilla: [], totalCaribe: 0, totalBarranquilla: 0 };
+                cycleLabel = 'Ninguno';
             } else {
-                data = cycleData[cycleKey];
-                if (!data) return;
-                cycleLabel = `Ciclo ${cycleKey}`;
+                data = getAggregatedData(selectedCycles);
+                const sorted = Array.from(selectedCycles).sort();
+                cycleLabel = sorted.map(s => `C${s}`).join('+');
             }
 
             renderTable(data.caribe, tablaCaribe, data.totalCaribe);
             renderTable(data.barranquilla, tablaBarranquilla, data.totalBarranquilla);
 
-            caribeCycleLabel.innerHTML = `<i class="far fa-calendar-alt"></i> ${cycleLabel}`;
-            barranquillaCycleLabel.innerHTML = `<i class="far fa-calendar-alt"></i> ${cycleLabel}`;
-            caribeCycleDisplay.textContent = cycleLabel;
-            barranquillaCycleDisplay.textContent = cycleLabel;
+            const labelDisplay = cycleLabel || 'Ninguno';
+            caribeCycleLabel.innerHTML = `<i class="far fa-calendar-alt"></i> ${labelDisplay}`;
+            barranquillaCycleLabel.innerHTML = `<i class="far fa-calendar-alt"></i> ${labelDisplay}`;
+            caribeCycleDisplay.textContent = labelDisplay;
+            barranquillaCycleDisplay.textContent = labelDisplay;
             caribeTotalDisplay.innerHTML = `<i class="fas fa-tag"></i> Total ${(data.totalCaribe * 100).toFixed(1)}%`;
             barranquillaTotalDisplay.innerHTML = `<i class="fas fa-tag"></i> Total ${(data.totalBarranquilla * 100).toFixed(1)}%`;
 
-            if (data.caribe.length > 0) {
+            if (data.caribe && data.caribe.length > 0) {
                 const topCaribe = data.caribe[0].label;
                 caribeTop.innerHTML = `<i class="fas fa-arrow-up"></i> Top: ${topCaribe}`;
+            } else {
+                caribeTop.innerHTML = `<i class="fas fa-arrow-up"></i> Top: —`;
             }
-            if (data.barranquilla.length > 0) {
+            if (data.barranquilla && data.barranquilla.length > 0) {
                 const topBarranquilla = data.barranquilla[0].label;
                 barranquillaTop.innerHTML = `<i class="fas fa-arrow-up"></i> Top: ${topBarranquilla}`;
+            } else {
+                barranquillaTop.innerHTML = `<i class="fas fa-arrow-up"></i> Top: —`;
             }
-            if (data.caribe.length > 0) {
+            if (data.caribe && data.caribe.length > 0) {
                 calloutLine.textContent = data.caribe[0].label;
+            } else {
+                calloutLine.textContent = '—';
             }
-            calloutCycle.textContent = cycleLabel;
+            calloutCycle.textContent = labelDisplay;
 
-            buildChart('chartCaribe', data.caribe, '#1a5a8a');
-            buildChart('chartBarranquilla', data.barranquilla, '#2a6b9c');
+            buildChart('chartCaribe', data.caribe || [], '#1a5a8a');
+            buildChart('chartBarranquilla', data.barranquilla || [], '#2a6b9c');
+
+            const selText = Array.from(selectedCycles).sort().join(', ');
+            selectionInfo.textContent = `Seleccionados: ${selText || 'ninguno'}`;
         }
 
-        // eventos sidebar
         const buttons = document.querySelectorAll('.sidebar-cycles .cycle-btn');
         buttons.forEach(btn => {
             btn.addEventListener('click', function(e) {
-                buttons.forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
                 const cycle = this.dataset.cycle;
-                updateDashboard(cycle);
+                if (cycle === 'all') {
+                    selectedCycles.clear();
+                    selectedCycles.add('all');
+                    buttons.forEach(b => {
+                        b.classList.remove('active', 'multi-selected');
+                    });
+                    this.classList.add('active');
+                    updateDashboard();
+                    return;
+                }
+                if (selectedCycles.has('all')) {
+                    selectedCycles.delete('all');
+                    document.querySelector('.cycle-btn[data-cycle="all"]')?.classList.remove('active');
+                }
+                if (selectedCycles.has(cycle)) {
+                    selectedCycles.delete(cycle);
+                    this.classList.remove('active', 'multi-selected');
+                } else {
+                    selectedCycles.add(cycle);
+                    this.classList.add('multi-selected');
+                }
+                updateDashboard();
             });
         });
 
-        // inicializar con ciclo 1
-        updateDashboard('1');
+        document.getElementById('clearSelection').addEventListener('click', function() {
+            selectedCycles.clear();
+            buttons.forEach(b => {
+                b.classList.remove('active', 'multi-selected');
+            });
+            updateDashboard();
+        });
+
+        document.querySelector('.cycle-btn[data-cycle="1"]')?.classList.add('active');
+        updateDashboard();
     })();
 </script>
 
